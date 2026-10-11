@@ -1,15 +1,19 @@
-# Agent Guidance
+# Guía para agentes
 
-Agents working on this project **must**:
+Quienes trabajen en este proyecto **deben**:
 
-- Look for **work instructions and rules** in the directory:  
-  `./.agents/rules`
+- Consultar las reglas específicas del área antes de analizar o modificar código:
+  - Frontend: `./.agents/rules/frontend.md`
+  - Backend: `./.agents/rules/backend.md`
 
-- Look for available **agent skills** in the directory:  
+- Consultar  las **skills para agentes** disponibles en:  
   `./.agents/skills`
 
-- Look for the **project memory bank** in:  
-  `./memory-bank`  
-  _(if the directory exists)_
+- Consultar el **banco de memoria del proyecto** antes de actuar, si existe:
+  - Producto: `./memory-bank/product-context.md`
+  - Tecnología: `./memory-bank/tech-context.md`
+  - Progreso: `./memory-bank/progress-context.md`
 
-Before taking action (analyzing code, modifying files, or generating outputs), always review the latest files in these locations to ensure compliance with project conventions, context, and operational constraints.
+Antes de actuar (analizar código, modificar archivos o generar resultados), revisar las reglas del área correspondiente y, si existen, las skills y los archivos del banco de memoria, para respetar las convenciones, el contexto y las restricciones operativas del proyecto.
+
+Después de cada implementación o avance del proyecto, actualizar `./memory-bank/progress-context.md` con el estado comprobado y las validaciones realizadas. Actualizar también `product-context.md` si cambia el comportamiento o alcance del producto, y `tech-context.md` si cambian la arquitectura, las dependencias, la estructura o los comandos. Registrar como pendientes las tareas no realizadas y no presentar como exitosas pruebas que no se hayan ejecutado.
