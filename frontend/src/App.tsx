@@ -3,12 +3,17 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { KPIRow } from "@/components/dashboard/kpi-row";
 import { IncomeOutcomeChart } from "@/components/dashboard/income-outcome-chart";
 import { ProfitPercentChart } from "@/components/dashboard/profit-percent-chart";
+import { BusinessComparison } from "@/components/dashboard/business-comparison";
 import {
   type FinancialMovement,
   type KPIMetrics,
   type MonthlyDataPoint,
 } from "@/lib/financial-types";
-import { computeKPIs, computeMonthlyData } from "@/lib/financial-utils";
+import {
+  computeBusinessComparison,
+  computeKPIs,
+  computeMonthlyData,
+} from "@/lib/financial-utils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -31,6 +36,7 @@ async function fetchFinancialData(
 function App() {
   const [metrics, setMetrics] = useState<KPIMetrics | null>(null);
   const [monthlyData, setMonthlyData] = useState<MonthlyDataPoint[]>([]);
+  const [businessComparison, setBusinessComparison] = useState<ReturnType<typeof computeBusinessComparison> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState("");
@@ -50,6 +56,7 @@ function App() {
         if (!isCurrentRequest) return;
         setMetrics(computeKPIs(movements));
         setMonthlyData(computeMonthlyData(movements));
+        setBusinessComparison(computeBusinessComparison(movements));
       })
       .catch(() => {
         if (!isCurrentRequest) return;
@@ -72,7 +79,18 @@ function App() {
 
   return (
     <main className="dark min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div role="status" aria-live="polite" className="sr-only">
+        {error
+          ? ""
+          : loading
+            ? "Cargando datos financieros."
+            : "Datos financieros actualizados."}
+      </div>
+
+      <div
+        className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+        aria-busy={loading}
+      >
         <div className="flex flex-col gap-8">
           <DashboardHeader period="2024 - Full Year" />
 
@@ -112,7 +130,10 @@ function App() {
           </form>
 
           {error ? (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground">
+            <div
+              role="alert"
+              className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground"
+            >
               {error}
             </div>
           ) : null}
@@ -127,6 +148,10 @@ function App() {
           >
             <IncomeOutcomeChart data={monthlyData} loading={loading} />
             <ProfitPercentChart data={monthlyData} loading={loading} />
+          </section>
+
+          <section aria-label="B2B and B2C comparison">
+            <BusinessComparison data={businessComparison} loading={loading} />
           </section>
         </div>
       </div>

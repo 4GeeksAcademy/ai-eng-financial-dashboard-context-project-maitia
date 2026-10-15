@@ -1,4 +1,6 @@
 import {
+  type BusinessComparison,
+  type BusinessType,
   type FinancialMovement,
   type KPIMetrics,
   type MonthlyDataPoint,
@@ -64,6 +66,36 @@ export function computeMonthlyData(
         profitPercent,
       };
     });
+}
+
+export function computeBusinessComparison(
+  movements: FinancialMovement[],
+): BusinessComparison {
+  const totals: Record<BusinessType, { income: number; outcome: number }> = {
+    B2B: { income: 0, outcome: 0 },
+    B2C: { income: 0, outcome: 0 },
+  };
+
+  for (const movement of movements) {
+    totals[movement.business_type][movement.operation_type] += movement.amount;
+  }
+
+  return {
+    B2B: buildBusinessSegmentMetrics(totals.B2B),
+    B2C: buildBusinessSegmentMetrics(totals.B2C),
+  };
+}
+
+function buildBusinessSegmentMetrics(totals: {
+  income: number;
+  outcome: number;
+}) {
+  const net = totals.income - totals.outcome;
+  return {
+    ...totals,
+    net,
+    profitPercent: totals.income > 0 ? (net / totals.income) * 100 : 0,
+  };
 }
 
 export function formatCurrency(value: number): string {

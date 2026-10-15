@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   computeKPIs,
+  computeBusinessComparison,
   computeMonthlyData,
   formatCurrency,
   formatPercent,
@@ -100,6 +101,37 @@ describe("computeMonthlyData", () => {
       outcome: 0,
       profitPercent: 100,
     });
+  });
+});
+
+describe("computeBusinessComparison", () => {
+  it("aggregates income, outcome, net and margin for both segments", () => {
+    expect(computeBusinessComparison(sampleMovements)).toEqual({
+      B2B: {
+        income: 1000,
+        outcome: 250,
+        net: 750,
+        profitPercent: 75,
+      },
+      B2C: {
+        income: 500,
+        outcome: 0,
+        net: 500,
+        profitPercent: 100,
+      },
+    });
+  });
+
+  it("returns zero values for a segment without movements", () => {
+    const comparison = computeBusinessComparison([]);
+
+    expect(comparison.B2B).toEqual({
+      income: 0,
+      outcome: 0,
+      net: 0,
+      profitPercent: 0,
+    });
+    expect(comparison.B2C).toEqual(comparison.B2B);
   });
 });
 
