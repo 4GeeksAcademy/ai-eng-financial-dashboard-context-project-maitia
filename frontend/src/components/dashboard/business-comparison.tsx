@@ -82,9 +82,9 @@ export function BusinessComparison({ data, loading = false }: BusinessComparison
           <Skeleton className="h-5 w-52" />
           <Skeleton className="mt-1 h-3 w-64" />
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <Skeleton className="h-[280px] w-full rounded-lg" />
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Skeleton className="h-[220px] w-full rounded-lg" />
         </CardContent>
       </Card>
     );
