@@ -2,6 +2,8 @@
 
 ## Qué funciona en el proyecto
 
+- Se revisó y aclaró [frontend/specs/README.md](../frontend/specs/README.md) para distinguir contrato API, implementación actual y criterios futuros de UI. Se precisó el estado de error de `App`, se aclararon las reglas de alertas y se asignaron estados recomendados a resultados vacíos/errores por endpoint. Los detalles se contrastaron con [routes.py](../backend/app/routes.py) y los componentes actuales. No se ejecutaron tests ni build en esta revisión documental.
+
 - Se contrastó la información del banco con la aplicación, utilidades y pruebas frontend, rutas y pruebas backend, manifiestos, Docker Compose y configuración de Vite. Se añadieron referencias a las afirmaciones de [product-context.md](product-context.md) y se corrigió en [tech-context.md](tech-context.md) el bloque Markdown que mezclaba comandos frontend y backend. Fue una auditoría documental; no se ejecutaron pruebas. Referencias: [App.tsx](../frontend/src/App.tsx), [financial-utils.test.ts](../frontend/src/lib/financial-utils.test.ts), [routes.py](../backend/app/routes.py), [test_routes.py](../backend/tests/test_routes.py), [package.json](../frontend/package.json), [docker-compose.yml](../docker-compose.yml), [vite.config.ts](../frontend/vite.config.ts).
 - `AGENTS.md` ahora indica consultar los contextos de producto, tecnología y progreso antes de actuar, y mantener el banco de memoria actualizado en cada avance. Referencia: [AGENTS.md](../AGENTS.md).
 - `App` consulta `GET /api/metrics`, gestiona carga y error, y pasa los datos a las utilidades de KPI y agregación mensual. Referencias: [App.tsx](../frontend/src/App.tsx), [financial-utils.ts](../frontend/src/lib/financial-utils.ts).

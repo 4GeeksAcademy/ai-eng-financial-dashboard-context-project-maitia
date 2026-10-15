@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { KPIRow } from "@/components/dashboard/kpi-row";
 import { IncomeOutcomeChart } from "@/components/dashboard/income-outcome-chart";
@@ -12,8 +12,16 @@ import { computeKPIs, computeMonthlyData } from "@/lib/financial-utils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
-async function fetchFinancialData(): Promise<FinancialMovement[]> {
-  const response = await fetch(`${API_BASE_URL}/api/metrics`);
+async function fetchFinancialData(
+  startDate: string,
+  endDate: string,
+): Promise<FinancialMovement[]> {
+  const query = new URLSearchParams();
+  if (startDate) query.set("start_date", startDate);
+  if (endDate) query.set("end_date", endDate);
+  const queryString = query.toString();
+  const url = `${API_BASE_URL}/api/metrics${queryString ? `?${queryString}` : ""}`;
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch financial data: ${response.status}`);
   }
@@ -25,28 +33,83 @@ function App() {
   const [monthlyData, setMonthlyData] = useState<MonthlyDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [appliedRange, setAppliedRange] = useState({
+    startDate: "",
+    endDate: "",
+  });
 
   useEffect(() => {
-    fetchFinancialData()
+    let isCurrentRequest = true;
+    setLoading(true);
+    setError(null);
+
+    fetchFinancialData(appliedRange.startDate, appliedRange.endDate)
       .then((movements) => {
+        if (!isCurrentRequest) return;
         setMetrics(computeKPIs(movements));
         setMonthlyData(computeMonthlyData(movements));
       })
       .catch(() => {
+        if (!isCurrentRequest) return;
         setError(
           "No se pudo cargar la informacion financiera. Revisa la API de backend.",
         );
       })
       .finally(() => {
-        setLoading(false);
+        if (isCurrentRequest) setLoading(false);
       });
-  }, []);
+    return () => {
+      isCurrentRequest = false;
+    };
+  }, [appliedRange]);
+
+  function applyDateRange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setAppliedRange({ startDate, endDate });
+  }
 
   return (
     <main className="dark min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8">
           <DashboardHeader period="2024 - Full Year" />
+
+          <form
+            className="flex flex-col gap-3 rounded-lg border border-border p-4 sm:flex-row sm:items-end"
+            onSubmit={applyDateRange}
+          >
+            <label className="flex flex-col gap-1 text-sm">
+              Fecha inicial
+              <input
+                aria-label="Fecha inicial"
+                className="rounded-md border border-border bg-background px-3 py-2"
+                type="date"
+                value={startDate}
+                onChange={(event) => setStartDate(event.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Fecha final
+              <input
+                aria-label="Fecha final"
+                className="rounded-md border border-border bg-background px-3 py-2"
+                type="date"
+                value={endDate}
+                onChange={(event) => setEndDate(event.target.value)}
+              />
+            </label>
+            <button
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+              type="submit"
+            >
+              Aplicar fechas
+            </button>
+            <p className="text-sm text-muted-foreground">
+              Deja ambas fechas vacías para mostrar todos los datos.
+            </p>
+          </form>
 
           {error ? (
             <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground">
