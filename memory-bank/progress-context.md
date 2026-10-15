@@ -1,5 +1,12 @@
 # Contexto de progreso
 
+## Skill checks-testing (2026-10-15)
+
+- Se creó `.agents/skills/checks-testing/SKILL.md`, con disparadores para preparar/revisar/validar funcionalidades, evaluar si un cambio está completo y modificar partes clave del dashboard, API o lógica heredada.
+- Se creó `.agents/skills/checks-testing/references/financial-dashboard-guide.md` con comandos disponibles, matriz de checks por impacto, convenciones de pruebas financieras y de API, estados de UI, smoke test de integración y formato de reporte.
+- La skill exige diferenciar checks aprobados, fallidos, no ejecutados y bloqueados; no se ejecutaron las suites del proyecto como parte de esta implementación documental.
+- Validación básica ejecutada con Python: ambos archivos existen y son legibles, los metadatos comienzan con `name: checks-testing`, no hay tabulaciones, las referencias clave al proyecto existen y el registro de progreso está presente. No se ejecutaron tests, build ni lint porque el cambio es documental.
+
 ## Diferimiento de comparación fuera del viewport (2026-10-15)
 
 - En `frontend/src/App.tsx`, la sección B2B/B2C ahora conserva el skeleton existente y monta el gráfico `BusinessComparison` solo cuando se acerca a 600 px del viewport, detectado mediante `IntersectionObserver`. Se conserva el import dinámico literal y se desconecta el observer al activar o desmontar.
