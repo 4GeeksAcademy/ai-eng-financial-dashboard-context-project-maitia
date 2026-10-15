@@ -11,6 +11,17 @@ services:
     depends_on:
       - backend
 
+  frontend-prod:
+    profiles:
+      - production
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "4173:80"
+    depends_on:
+      - backend
+
   backend:
     build:
       context: ./backend

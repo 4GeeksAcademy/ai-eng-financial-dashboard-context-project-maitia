@@ -1,5 +1,18 @@
 # Contexto de progreso
 
+## Diferimiento de comparación fuera del viewport (2026-10-15)
+
+- En `frontend/src/App.tsx`, la sección B2B/B2C ahora conserva el skeleton existente y monta el gráfico `BusinessComparison` solo cuando se acerca a 600 px del viewport, detectado mediante `IntersectionObserver`. Se conserva el import dinámico literal y se desconecta el observer al activar o desmontar.
+- Si `IntersectionObserver` no está disponible, el estado inicial permite mostrar el gráfico inmediatamente como degradación compatible. Los dos gráficos mensuales no se modificaron porque son contenido visible en la primera pantalla.
+- Validación pendiente: `npm run build` no pudo comenzar porque `tsc` no está disponible en `node_modules`; `npm ci` no pudo reparar la instalación por `EACCES` al escribir dentro de `frontend/node_modules`. No se completaron build, tests ni medición de TBT/LCP. Reintentar una vez corregidos los permisos/dependencias.
+
+## Trabajo de performance (2026-10-15)
+
+- Se midió antes de cambiar código: Vite respondió el HTML con TTFB de 4,8–7,2 ms en tres llamadas; el backend directo respondió `/api/metrics` en 3,9–6,5 ms y 41.683 bytes. No había Lighthouse ni navegador headless disponible, así que no se obtuvo traza de LCP/TBT ni condiciones de laboratorio completas. El proxy API desde el host tuvo timeouts durante estas comprobaciones; no se atribuyen los valores a usuarios reales.
+- Se aplicó code splitting de los tres gráficos desde `frontend/src/App.tsx` con `React.lazy`/`Suspense` y skeletons con dimensiones existentes. Build pasó; bundle inicial pasó de 611,25 kB (181,85 kB gzip) a 189,89 kB (60,54 kB gzip), dejando el chunk de Recharts (330,72 kB) aparte. Vitest pasó: 7 pruebas. No hubo cambio de diseño intencionado.
+- Se añadió despliegue opcional `frontend-prod` en perfil `production`, con `frontend/Dockerfile.prod` y `frontend/nginx.conf`; no se reemplazó el flujo de desarrollo. `docker compose config`, build de imagen, Nginx, HTML (200), asset (200), caché de asset hasheado y revalidación de `index.html` se validaron. El proxy `/api` a través del contenedor no respondió en este entorno; la ruta directa del backend funciona desde el host, por lo que queda pendiente validar la conectividad intercontenedor y la API en el despliegue de producción.
+- `npm run lint` sigue fallando por dos interfaces vacías preexistentes en `frontend/specs/api-types.ts` y la regla `react-hooks/set-state-in-effect` en `App.tsx` (la llamada a `setLoading(true)` ya existía antes del cambio). No se ampliaron cambios a esos asuntos ajenos al alcance. El `git status` también mostró `.agents/skills/performance/` y `skills-lock.json` modificados al inicio de la implementación; no se editaron manualmente como parte de estas correcciones.
+
 ## Qué funciona en el proyecto
 
 - Se revisó y aclaró [frontend/specs/README.md](../frontend/specs/README.md) para distinguir contrato API, implementación actual y criterios futuros de UI. Se precisó el estado de error de `App`, se aclararon las reglas de alertas y se asignaron estados recomendados a resultados vacíos/errores por endpoint. Los detalles se contrastaron con [routes.py](../backend/app/routes.py) y los componentes actuales. No se ejecutaron tests ni build en esta revisión documental.
