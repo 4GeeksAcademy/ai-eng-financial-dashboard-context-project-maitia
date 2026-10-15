@@ -23,3 +23,15 @@ export interface MonthlyDataPoint {
   outcome: number
   profitPercent: number
 }
+
+export interface BusinessSegmentMetrics {
+  income: number
+  outcome: number
+  net: number
+  profitPercent: number
+}
+
+export interface BusinessComparison {
+  B2B: BusinessSegmentMetrics
+  B2C: BusinessSegmentMetrics
+}

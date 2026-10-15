@@ -1,16 +1,78 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { KPIRow } from "@/components/dashboard/kpi-row";
-import { IncomeOutcomeChart } from "@/components/dashboard/income-outcome-chart";
-import { ProfitPercentChart } from "@/components/dashboard/profit-percent-chart";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   type FinancialMovement,
   type KPIMetrics,
   type MonthlyDataPoint,
 } from "@/lib/financial-types";
-import { computeKPIs, computeMonthlyData } from "@/lib/financial-utils";
+import {
+  computeBusinessComparison,
+  computeKPIs,
+  computeMonthlyData,
+} from "@/lib/financial-utils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const IncomeOutcomeChart = lazy(() =>
+  import("@/components/dashboard/income-outcome-chart").then((module) => ({
+    default: module.IncomeOutcomeChart,
+  })),
+);
+const ProfitPercentChart = lazy(() =>
+  import("@/components/dashboard/profit-percent-chart").then((module) => ({
+    default: module.ProfitPercentChart,
+  })),
+);
+const BusinessComparison = lazy(() =>
+  import("@/components/dashboard/business-comparison").then((module) => ({
+    default: module.BusinessComparison,
+  })),
+);
+
+function ChartFallback({ comparison = false }: { comparison?: boolean }) {
+  return (
+    <Card className="border-border/60" aria-busy="true">
+      <CardHeader className="pb-4">
+        <Skeleton className="h-5 w-52" />
+        <Skeleton className="mt-1 h-3 w-64" />
+      </CardHeader>
+      <CardContent className={comparison ? "space-y-6" : undefined}>
+        <Skeleton className="h-[280px] w-full rounded-lg" />
+        {comparison ? <Skeleton className="h-[220px] w-full rounded-lg" /> : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function useNearViewport<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [isNearViewport, setIsNearViewport] = useState(
+    () => typeof IntersectionObserver === "undefined",
+  );
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || isNearViewport) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsNearViewport(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [isNearViewport]);
+
+  return { ref, isNearViewport };
+}
 
 async function fetchFinancialData(
   startDate: string,
@@ -31,6 +93,7 @@ async function fetchFinancialData(
 function App() {
   const [metrics, setMetrics] = useState<KPIMetrics | null>(null);
   const [monthlyData, setMonthlyData] = useState<MonthlyDataPoint[]>([]);
+  const [businessComparison, setBusinessComparison] = useState<ReturnType<typeof computeBusinessComparison> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState("");
@@ -39,6 +102,10 @@ function App() {
     startDate: "",
     endDate: "",
   });
+  const {
+    ref: comparisonSectionRef,
+    isNearViewport: isComparisonNearViewport,
+  } = useNearViewport<HTMLElement>();
 
   useEffect(() => {
     let isCurrentRequest = true;
@@ -50,6 +117,7 @@ function App() {
         if (!isCurrentRequest) return;
         setMetrics(computeKPIs(movements));
         setMonthlyData(computeMonthlyData(movements));
+        setBusinessComparison(computeBusinessComparison(movements));
       })
       .catch(() => {
         if (!isCurrentRequest) return;
@@ -72,7 +140,18 @@ function App() {
 
   return (
     <main className="dark min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div role="status" aria-live="polite" className="sr-only">
+        {error
+          ? ""
+          : loading
+            ? "Cargando datos financieros."
+            : "Datos financieros actualizados."}
+      </div>
+
+      <div
+        className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+        aria-busy={loading}
+      >
         <div className="flex flex-col gap-8">
           <DashboardHeader period="2024 - Full Year" />
 
@@ -112,7 +191,10 @@ function App() {
           </form>
 
           {error ? (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground">
+            <div
+              role="alert"
+              className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground"
+            >
               {error}
             </div>
           ) : null}
@@ -125,8 +207,28 @@ function App() {
             aria-label="Financial charts"
             className="grid grid-cols-1 gap-4 xl:grid-cols-2"
           >
-            <IncomeOutcomeChart data={monthlyData} loading={loading} />
-            <ProfitPercentChart data={monthlyData} loading={loading} />
+            <Suspense fallback={<ChartFallback />}>
+              <IncomeOutcomeChart data={monthlyData} loading={loading} />
+            </Suspense>
+            <Suspense fallback={<ChartFallback />}>
+              <ProfitPercentChart data={monthlyData} loading={loading} />
+            </Suspense>
+          </section>
+
+          <section
+            ref={comparisonSectionRef}
+            aria-label="B2B and B2C comparison"
+          >
+            {isComparisonNearViewport ? (
+              <Suspense fallback={<ChartFallback comparison />}>
+                <BusinessComparison
+                  data={businessComparison}
+                  loading={loading}
+                />
+              </Suspense>
+            ) : (
+              <ChartFallback comparison />
+            )}
           </section>
         </div>
       </div>

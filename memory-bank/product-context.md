@@ -14,6 +14,7 @@ La pantalla actual consulta `/api/metrics` y calcula KPI y agregados mensuales e
 - El generador crea 360 movimientos: 30 por cada uno de 12 meses, y ordena los resultados por fecha. Referencias: [routes.py](../backend/app/routes.py), [test_routes.py](../backend/tests/test_routes.py).
 - Las rutas analíticas permiten agrupar por día, semana o mes; consultar categorías principales; comparar periodos; y detectar aumentos de egresos. Referencia: [routes.py](../backend/app/routes.py).
 - La interfaz visible actualmente muestra KPI y gráficos mensuales de ingresos frente a egresos y porcentaje de beneficio. Referencias: [App.tsx](../frontend/src/App.tsx), [kpi-row.tsx](../frontend/src/components/dashboard/kpi-row.tsx), [income-outcome-chart.tsx](../frontend/src/components/dashboard/income-outcome-chart.tsx), [profit-percent-chart.tsx](../frontend/src/components/dashboard/profit-percent-chart.tsx).
+- La interfaz incluye una comparación B2B vs B2C con barras verticales agrupadas para ingresos, egresos y beneficio neto, más una tabla con los importes, diferencias y márgenes por segmento. La comparación se calcula en el frontend sobre los movimientos recibidos para el rango de fechas activo. Referencias: [App.tsx](../frontend/src/App.tsx), [business-comparison.tsx](../frontend/src/components/dashboard/business-comparison.tsx), [financial-utils.ts](../frontend/src/lib/financial-utils.ts).
 
 ## Consideración sobre el periodo
 
